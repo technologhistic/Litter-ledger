@@ -4,7 +4,7 @@ import { ShiftType } from '../types';
 import { SHIFTS } from '../utils/shifts';
 import { OfflineIndicator } from './OfflineIndicator';
 
-export type NavTab = 'sell' | 'items' | 'month' | 'history' | 'updates' | 'backup';
+export type NavTab = 'sell' | 'items' | 'month' | 'history' | 'backup';
 
 interface HeaderProps {
   currentTab: NavTab;
@@ -14,7 +14,9 @@ interface HeaderProps {
   activeShift: ShiftType;
   onSelectShift: (shift: ShiftType) => void;
   todayBsText: string;
-  onOpenUpdateModal: () => void;
+  hasUpdate: boolean;
+  isUpdating: boolean;
+  onTriggerUpdate: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,7 +27,9 @@ export const Header: React.FC<HeaderProps> = ({
   activeShift,
   onSelectShift,
   todayBsText,
-  onOpenUpdateModal,
+  hasUpdate,
+  isUpdating,
+  onTriggerUpdate,
 }) => {
   const currentShiftInfo = SHIFTS[activeShift];
 
@@ -105,17 +109,6 @@ export const Header: React.FC<HeaderProps> = ({
               Sales History
             </button>
             <button
-              onClick={() => onSelectTab('updates')}
-              className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                currentTab === 'updates'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Updates</span>
-            </button>
-            <button
               onClick={() => onSelectTab('backup')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'backup'
@@ -127,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Zone 3: 1 primary action area (Calendar System, Shift selector, & Update button) */}
+          {/* Zone 3: Actions area (Shift Selector, Offline Status, Calendar, and Single Glowing Update Button) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Shift pill toggle */}
             <div className="hidden lg:flex items-center gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200">
@@ -151,27 +144,42 @@ export const Header: React.FC<HeaderProps> = ({
               })}
             </div>
 
-            {/* Simple Offline / Online Status Indicator */}
+            {/* Offline / Online Status Indicator */}
             <OfflineIndicator />
 
             {/* Calendar toggle button */}
             <button
               onClick={onToggleCalendar}
               title={`Switch calendar (currently ${calendarSystem})`}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5 text-blue-600" />
               <span>{calendarSystem === 'BS' ? 'BS Calendar' : 'AD Calendar'}</span>
             </button>
 
-            {/* Prominent Update Site Button */}
+            {/* Single Update Button (Glows when update is available) */}
             <button
-              onClick={onOpenUpdateModal}
-              title="Update Site & Synchronize Latest Changes"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-xs whitespace-nowrap cursor-pointer active:scale-95"
+              onClick={onTriggerUpdate}
+              disabled={isUpdating}
+              title={
+                hasUpdate
+                  ? 'New update available! Tap to refresh and apply the update'
+                  : 'Tap to check and update app'
+              }
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer ${
+                hasUpdate
+                  ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.75)] ring-2 ring-blue-400 ring-offset-1 animate-pulse hover:bg-blue-700'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+              } ${isUpdating ? 'opacity-70 cursor-wait' : ''}`}
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Update Site</span>
+              {hasUpdate && (
+                <span className="relative flex h-2 w-2 mr-0.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-300 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-200"></span>
+                </span>
+              )}
+              <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
+              <span>{isUpdating ? 'Updating...' : hasUpdate ? 'Update Available' : 'Update'}</span>
             </button>
           </div>
         </div>
@@ -181,15 +189,15 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onSelectTab('sell')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'sell' ? 'bg-blue-600 text-white' : 'text-slate-600'
+              currentTab === 'sell' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
             }`}
           >
-            Sell
+            Sell Today
           </button>
           <button
             onClick={() => onSelectTab('items')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'items' ? 'bg-blue-600 text-white' : 'text-slate-600'
+              currentTab === 'items' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
             }`}
           >
             Items
@@ -197,7 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onSelectTab('month')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'month' ? 'bg-blue-600 text-white' : 'text-slate-600'
+              currentTab === 'month' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
             }`}
           >
             Month
@@ -205,33 +213,18 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onSelectTab('history')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'history' ? 'bg-blue-600 text-white' : 'text-slate-600'
+              currentTab === 'history' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
             }`}
           >
             History
           </button>
           <button
-            onClick={() => onSelectTab('updates')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'updates' ? 'bg-blue-600 text-white' : 'text-slate-600'
-            }`}
-          >
-            Updates
-          </button>
-          <button
             onClick={() => onSelectTab('backup')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'backup' ? 'bg-blue-600 text-white' : 'text-slate-600'
+              currentTab === 'backup' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
             }`}
           >
             Settings
-          </button>
-          <button
-            onClick={onOpenUpdateModal}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 whitespace-nowrap"
-          >
-            <RefreshCw className="w-3 h-3" />
-            <span>Update</span>
           </button>
         </div>
       </div>

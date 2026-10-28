@@ -5,10 +5,7 @@ import { ItemsView } from './components/ItemsView';
 import { MonthView } from './components/MonthView';
 import { HistoryView } from './components/HistoryView';
 import { BackupSettingsView } from './components/BackupSettingsView';
-import { UpdatesView } from './components/UpdatesView';
 import { ReceiptModal } from './components/ReceiptModal';
-import { UpdateModal } from './components/UpdateModal';
-import { UpdateAvailablePopup, AppUpdateDetails } from './components/UpdateAvailablePopup';
 import { Item, Sale, Settings, ShiftType } from './types';
 import { getTodayBs, getTodayIsoDate } from './utils/bikramSambat';
 import { getCurrentShift } from './utils/shifts';
@@ -26,29 +23,17 @@ import {
   loadItemsFromIndexedDB,
   loadSalesFromIndexedDB,
 } from './utils/indexedDb';
-import { RefreshCw, CheckCircle2, Sparkles } from 'lucide-react';
+import { useAppUpdate } from './utils/useAppUpdate';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function App() {
+  const { hasUpdate, isUpdating, triggerUpdate } = useAppUpdate();
   const [items, setItems] = useState<Item[]>(() => loadItems());
   const [sales, setSales] = useState<Sale[]>(() => loadSales());
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [activeShift, setActiveShift] = useState<ShiftType>(() => getCurrentShift());
   const [currentTab, setCurrentTab] = useState<NavTab>('sell');
   const [todayDate] = useState<string>(() => getTodayIsoDate());
-
-  // Update popup state
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [isUpdateAvailablePopupOpen, setIsUpdateAvailablePopupOpen] = useState(false);
-  const [updateDetails, setUpdateDetails] = useState<AppUpdateDetails | null>({
-    version: '1.3.0',
-    title: 'New Update Available',
-    notes: [
-      'Clean database setup without sample demo items',
-      'Enhanced Bikram Sambat (BS) date conversion algorithms',
-      'Shift-wise sales summaries (Morning, Noon, Evening)',
-      'Direct thermal receipt printing & one-click update engine',
-    ],
-  });
   const [syncToast, setSyncToast] = useState<string | null>(null);
 
   // Receipt Modal state
@@ -90,13 +75,6 @@ export default function App() {
     }
   }, []);
 
-  // Listen for Service Worker update found event to show popup
-  useEffect(() => {
-    const handleUpdate = () => setIsUpdateAvailablePopupOpen(true);
-    window.addEventListener('app_update_available', handleUpdate);
-    return () => window.removeEventListener('app_update_available', handleUpdate);
-  }, []);
-
   // Listen for cross-tab storage changes so all open tabs update in real-time
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -120,20 +98,20 @@ export default function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Today BS Date
   const todayBs = getTodayBs();
-  const todayBsText = `${todayBs.day} ${todayBs.monthNameEn} ${todayBs.year} BS`;
+  const todayBsText = `${todayBs.day} ${todayBs.monthNameEn} ${todayBs.year} (${todayBs.dayOfWeekNp})`;
 
-  // Sale Operations
+  // Add Sale handler
   const handleAddSale = (newSale: Sale) => {
     setSales((prev) => [newSale, ...prev]);
   };
 
+  // Delete Sale handler
   const handleDeleteSale = (saleId: string) => {
     setSales((prev) => prev.filter((s) => s.id !== saleId));
   };
 
-  // Item Operations
+  // Item management handlers
   const handleAddItem = (newItem: Item) => {
     setItems((prev) => [...prev, newItem]);
   };
@@ -156,18 +134,19 @@ export default function App() {
     }));
   };
 
-  // Data import / reset
+  // Backup & Restore
   const handleImportData = (newItems: Item[], newSales: Sale[], replace: boolean) => {
     if (replace) {
       setItems(newItems);
       setSales(newSales);
     } else {
-      // Merge unique items and sales
+      // Merge unique
       setItems((prev) => {
         const existingNames = new Set(prev.map((i) => i.name.toLowerCase()));
         const toAdd = newItems.filter((i) => !existingNames.has(i.name.toLowerCase()));
         return [...prev, ...toAdd];
       });
+
       setSales((prev) => {
         const existingIds = new Set(prev.map((s) => s.id));
         const toAdd = newSales.filter((s) => !existingIds.has(s.id));
@@ -179,11 +158,6 @@ export default function App() {
   const handleClearAllData = () => {
     setSales([]);
     setItems([]);
-  };
-
-  // Remote Price Sync
-  const handleSyncRemotePrices = (syncedItems: Item[]) => {
-    setItems(syncedItems);
   };
 
   // Open Daily summary receipt
@@ -207,7 +181,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      {/* Top Header with Update Site Button */}
+      {/* Top Header */}
       <Header
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
@@ -216,7 +190,9 @@ export default function App() {
         activeShift={activeShift}
         onSelectShift={setActiveShift}
         todayBsText={todayBsText}
-        onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
+        hasUpdate={hasUpdate}
+        isUpdating={isUpdating}
+        onTriggerUpdate={triggerUpdate}
       />
 
       {/* Floating Cross-Tab Sync Notification */}
@@ -226,7 +202,7 @@ export default function App() {
           <span>{syncToast}</span>
           <button
             onClick={() => setSyncToast(null)}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white cursor-pointer"
           >
             ✕
           </button>
@@ -280,16 +256,6 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'updates' && (
-          <UpdatesView
-            items={items}
-            salesCount={sales.length}
-            settings={settings}
-            onSyncRemotePrices={handleSyncRemotePrices}
-            onTriggerUpdatePopup={() => setIsUpdateAvailablePopupOpen(true)}
-          />
-        )}
-
         {currentTab === 'backup' && (
           <BackupSettingsView
             items={items}
@@ -302,51 +268,19 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer with quick Update Site trigger */}
+      {/* Clean Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             <span className="font-semibold text-slate-700">Litre Ledger</span> · Liquid & Dairy Sales Management
           </div>
           <div className="flex items-center gap-4 text-slate-400">
-            <span>Offline-Ready (LocalStorage)</span>
+            <span>Offline-Ready (LocalStorage + IndexedDB)</span>
             <span>·</span>
             <span>Bikram Sambat (वि.सं.) + AD</span>
-            <span>·</span>
-            <button
-              onClick={() => setIsUpdateAvailablePopupOpen(true)}
-              className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer"
-            >
-              <RefreshCw className="w-3 h-3" />
-              <span>Update Available (v1.3.0)</span>
-            </button>
           </div>
         </div>
       </footer>
-
-      {/* Update & Sync Modal */}
-      <UpdateModal
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        items={items}
-        salesCount={sales.length}
-        onSyncRemotePrices={handleSyncRemotePrices}
-      />
-
-      {/* Update Available Popup */}
-      <UpdateAvailablePopup
-        isOpen={isUpdateAvailablePopupOpen}
-        updateDetails={updateDetails}
-        onUpdate={() => {
-          if ('caches' in window) {
-            caches.keys().then((names) => {
-              names.forEach((name) => caches.delete(name));
-            });
-          }
-          window.location.reload();
-        }}
-        onDismiss={() => setIsUpdateAvailablePopupOpen(false)}
-      />
 
       {/* Printable Receipt Modal */}
       {(receiptSale || receiptDailySummary) && (
