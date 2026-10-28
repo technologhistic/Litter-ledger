@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Litre Ledger</string>
+    <string name="target_url">https://litterledger-mu.vercel.app/</string>
+</resources>

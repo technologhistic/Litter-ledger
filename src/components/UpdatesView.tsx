@@ -4,14 +4,7 @@ import {
   CheckCircle2,
   AlertCircle,
   CloudDownload,
-  CloudUpload,
-  Download,
   Smartphone,
-  Check,
-  Copy,
-  ExternalLink,
-  ShieldCheck,
-  History,
   Info,
   Sparkles,
 } from 'lucide-react';
@@ -34,7 +27,6 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
 }) => {
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'uptodate' | 'available' | 'error'>('idle');
-  const [copiedManifest, setCopiedManifest] = useState(false);
   const [remoteCatalogUrl, setRemoteCatalogUrl] = useState('');
   const [isSyncingPrices, setIsSyncingPrices] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ text: string; ok: boolean } | null>(null);
@@ -43,15 +35,6 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
   const currentVersionName = '1.2.0';
   const currentVersionCode = 2;
   const buildDate = 'October 2026';
-
-  const sampleVersionJson = `{
-  "appName": "Litre Ledger",
-  "versionCode": 3,
-  "versionName": "1.3.0",
-  "releaseDate": "${new Date().toISOString().split('T')[0]}",
-  "releaseNotes": "1. Removed demo items for a clean real-world ledger.\\n2. Added instant 'Update Available' notification popup.\\n3. Real-time shift volume tracking & thermal print receipts.",
-  "minSupportedVersion": 1
-}`;
 
   const handleCheckForUpdates = () => {
     setChecking(true);
@@ -72,12 +55,6 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
       });
     }
     window.location.reload();
-  };
-
-  const handleCopyManifest = () => {
-    navigator.clipboard.writeText(sampleVersionJson);
-    setCopiedManifest(true);
-    setTimeout(() => setCopiedManifest(false), 2000);
   };
 
   const handleSyncRemoteCatalog = async (e: React.FormEvent) => {
@@ -327,98 +304,6 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
         </form>
       </div>
 
-      {/* 5. Multi-Device Distribution Guide for the Owner */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center gap-2.5 mb-2">
-          <CloudUpload className="w-5 h-5 text-blue-600" />
-          <h3 className="text-base font-bold text-slate-900">
-            How to Distribute Updates Across Staff Devices
-          </h3>
-        </div>
-        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-          Because this website is used by collection center staff in different locations, follow these simple steps to deploy updates:
-        </p>
-
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              1
-            </span>
-            <div>
-              <span className="text-xs font-bold text-slate-900 block">Deploy Latest Changes</span>
-              <span className="text-xs text-slate-500">
-                Whenever changes are published, the web app build automatically deploys to the cloud.
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              2
-            </span>
-            <div>
-              <span className="text-xs font-bold text-slate-900 block">Tap "Update App Now" on Any Device</span>
-              <span className="text-xs text-slate-500">
-                Staff simply tap the blue <strong>"Update Site"</strong> button in the header. The app immediately flushes old cache and loads the new version while preserving all past sales records safely in localStorage.
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              3
-            </span>
-            <div>
-              <span className="text-xs font-bold text-slate-900 block">Cross-Tab Live Synchronization</span>
-              <span className="text-xs text-slate-500">
-                If the app is open in multiple tabs on the same computer, recording a sale or changing a price in one tab updates all other tabs instantly without requiring a refresh.
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Sample version.json preview */}
-        <div className="mt-5 pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-700">Sample version.json Manifest:</span>
-            <button
-              onClick={handleCopyManifest}
-              className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
-            >
-              {copiedManifest ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedManifest ? 'Copied' : 'Copy JSON'}</span>
-            </button>
-          </div>
-          <pre className="p-3 bg-slate-900 text-slate-100 rounded-xl text-xs font-mono overflow-x-auto">
-            {sampleVersionJson}
-          </pre>
-        </div>
-      </div>
-
-      {/* 6. Release Notes / Changelog */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center gap-2 mb-3">
-          <History className="w-4 h-4 text-slate-600" />
-          <h3 className="text-base font-bold text-slate-900">What's New in this Version</h3>
-        </div>
-
-        <div className="space-y-3 text-xs text-slate-600">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <div className="flex items-center justify-between font-bold text-slate-900 mb-1">
-              <span>v1.2.0 (Current)</span>
-              <span className="text-blue-600 font-mono">Latest Release</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-600">
-              <li>Added 1-Click Update button to header & footer for instant site updates.</li>
-              <li>Added real-time multi-window and cross-tab storage synchronization.</li>
-              <li>Full Bikram Sambat (BS) Nepali calendar engine with month navigation (Baishakh to Chaitra).</li>
-              <li>Shift logging: Morning (बिहान), Noon (दिउँसो), Evening (साँझ) with auto-shift selection.</li>
-              <li>Thermal-style printable receipts & WhatsApp/SMS report generator.</li>
-              <li>JSON and CSV backup exports.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
