@@ -8,40 +8,41 @@ import { BackupSettingsView } from './components/BackupSettingsView';
 import { UpdatesView } from './components/UpdatesView';
 import { ReceiptModal } from './components/ReceiptModal';
 import { UpdateModal } from './components/UpdateModal';
+import { UpdateAvailablePopup, AppUpdateDetails } from './components/UpdateAvailablePopup';
 import { Item, Sale, Settings, ShiftType } from './types';
 import { getTodayBs, getTodayIsoDate } from './utils/bikramSambat';
 import { getCurrentShift } from './utils/shifts';
 import {
-  DEFAULT_ITEMS,
   loadItems,
   loadSales,
   loadSettings,
   saveItems,
   saveSales,
   saveSettings,
-  generateDemoSales,
 } from './utils/storage';
-import { RefreshCw, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function App() {
   const [items, setItems] = useState<Item[]>(() => loadItems());
-  const [sales, setSales] = useState<Sale[]>(() => {
-    const loaded = loadSales();
-    if (loaded.length === 0) {
-      // If fresh install, generate sample records so the user immediately sees the rich dashboard
-      const demo = generateDemoSales(DEFAULT_ITEMS);
-      saveSales(demo);
-      return demo;
-    }
-    return loaded;
-  });
+  const [sales, setSales] = useState<Sale[]>(() => loadSales());
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [activeShift, setActiveShift] = useState<ShiftType>(() => getCurrentShift());
   const [currentTab, setCurrentTab] = useState<NavTab>('sell');
   const [todayDate] = useState<string>(() => getTodayIsoDate());
 
-  // Update modal state
+  // Update popup state
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isUpdateAvailablePopupOpen, setIsUpdateAvailablePopupOpen] = useState(false);
+  const [updateDetails, setUpdateDetails] = useState<AppUpdateDetails | null>({
+    version: '1.3.0',
+    title: 'New Update Available',
+    notes: [
+      'Clean database setup without sample demo items',
+      'Enhanced Bikram Sambat (BS) date conversion algorithms',
+      'Shift-wise sales summaries (Morning, Noon, Evening)',
+      'Direct thermal receipt printing & one-click update engine',
+    ],
+  });
   const [syncToast, setSyncToast] = useState<string | null>(null);
 
   // Receipt Modal state
@@ -118,10 +119,6 @@ export default function App() {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const handleResetDefaultItems = () => {
-    setItems(DEFAULT_ITEMS);
-  };
-
   // Calendar toggle
   const handleToggleCalendar = () => {
     setSettings((prev) => ({
@@ -152,11 +149,7 @@ export default function App() {
 
   const handleClearAllData = () => {
     setSales([]);
-    setItems(DEFAULT_ITEMS);
-  };
-
-  const handleLoadDemoData = (demoSales: Sale[]) => {
-    setSales((prev) => [...demoSales, ...prev]);
+    setItems([]);
   };
 
   // Remote Price Sync
@@ -237,7 +230,6 @@ export default function App() {
             onAddItem={handleAddItem}
             onUpdateItemPrice={handleUpdateItemPrice}
             onDeleteItem={handleDeleteItem}
-            onResetDefaultItems={handleResetDefaultItems}
           />
         )}
 
@@ -265,6 +257,7 @@ export default function App() {
             salesCount={sales.length}
             settings={settings}
             onSyncRemotePrices={handleSyncRemotePrices}
+            onTriggerUpdatePopup={() => setIsUpdateAvailablePopupOpen(true)}
           />
         )}
 
@@ -276,7 +269,6 @@ export default function App() {
             onUpdateSettings={setSettings}
             onImportData={handleImportData}
             onClearAllData={handleClearAllData}
-            onLoadDemoData={handleLoadDemoData}
           />
         )}
       </main>
@@ -293,11 +285,11 @@ export default function App() {
             <span>Bikram Sambat (वि.सं.) + AD</span>
             <span>·</span>
             <button
-              onClick={() => setIsUpdateModalOpen(true)}
+              onClick={() => setIsUpdateAvailablePopupOpen(true)}
               className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
-              <span>Update Site (v1.2.0)</span>
+              <span>Update Available (v1.3.0)</span>
             </button>
           </div>
         </div>
@@ -310,6 +302,21 @@ export default function App() {
         items={items}
         salesCount={sales.length}
         onSyncRemotePrices={handleSyncRemotePrices}
+      />
+
+      {/* Update Available Popup */}
+      <UpdateAvailablePopup
+        isOpen={isUpdateAvailablePopupOpen}
+        updateDetails={updateDetails}
+        onUpdate={() => {
+          if ('caches' in window) {
+            caches.keys().then((names) => {
+              names.forEach((name) => caches.delete(name));
+            });
+          }
+          window.location.reload();
+        }}
+        onDismiss={() => setIsUpdateAvailablePopupOpen(false)}
       />
 
       {/* Printable Receipt Modal */}

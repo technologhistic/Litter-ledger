@@ -23,21 +23,51 @@ export const DEFAULT_SETTINGS: Settings = {
   address: 'Milk Collection Center',
 };
 
+export function cleanupDemoItems(): void {
+  try {
+    const rawItems = localStorage.getItem(STORAGE_KEYS.ITEMS);
+    if (rawItems) {
+      const parsed = JSON.parse(rawItems);
+      if (Array.isArray(parsed)) {
+        const nonDemo = parsed.filter(
+          (i) => !['item-1', 'item-2', 'item-3', 'item-4', 'item-5'].includes(i.id)
+        );
+        localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(nonDemo));
+      }
+    }
+
+    const rawSales = localStorage.getItem(STORAGE_KEYS.SALES);
+    if (rawSales) {
+      const parsedSales = JSON.parse(rawSales);
+      if (Array.isArray(parsedSales)) {
+        const nonDemoSales = parsedSales.filter(
+          (s) =>
+            !['Cow Milk (गाईको दूध)', 'Buffalo Milk (भैँसीको दूध)', 'Full Cream Milk (फुल क्रिम)', 'Curd / Dahi (दही)', 'Paneer / Dairy Milk'].includes(s.item)
+        );
+        localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(nonDemoSales));
+      }
+    }
+  } catch (e) {
+    console.error('Error cleaning demo items', e);
+  }
+}
+
 export function loadItems(): Item[] {
   try {
+    // Run cleanup once for existing browsers with demo items
+    if (!localStorage.getItem('litreLedger_demo_cleaned_v2')) {
+      localStorage.setItem('litreLedger_demo_cleaned_v2', 'true');
+      cleanupDemoItems();
+    }
+
     const raw = localStorage.getItem(STORAGE_KEYS.ITEMS);
     if (!raw) {
-      saveItems(DEFAULT_ITEMS);
-      return DEFAULT_ITEMS;
+      return [];
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-    saveItems(DEFAULT_ITEMS);
-    return DEFAULT_ITEMS;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return DEFAULT_ITEMS;
+    return [];
   }
 }
 

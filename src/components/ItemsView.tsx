@@ -10,7 +10,6 @@ interface ItemsViewProps {
   onAddItem: (item: Item) => void;
   onUpdateItemPrice: (id: string, newPrice: number) => void;
   onDeleteItem: (id: string) => void;
-  onResetDefaultItems: () => void;
 }
 
 export const ItemsView: React.FC<ItemsViewProps> = ({
@@ -20,7 +19,6 @@ export const ItemsView: React.FC<ItemsViewProps> = ({
   onAddItem,
   onUpdateItemPrice,
   onDeleteItem,
-  onResetDefaultItems,
 }) => {
   const [nameInput, setNameInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
@@ -100,15 +98,6 @@ export const ItemsView: React.FC<ItemsViewProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {items.length === 0 && (
-            <button
-              onClick={onResetDefaultItems}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Load Starter Items</span>
-            </button>
-          )}
           <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg">
             {items.length} {items.length === 1 ? 'Item' : 'Items'}
           </span>
@@ -116,9 +105,18 @@ export const ItemsView: React.FC<ItemsViewProps> = ({
       </div>
 
       {/* Grid of Items */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {itemStats.map((item) => {
-          const isEditing = editingItemId === item.id;
+      {items.length === 0 ? (
+        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center">
+          <Droplet className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+          <h3 className="text-sm font-bold text-slate-900">Your Item Catalog is Empty</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            No demo items are loaded. Use the form below to add your genuine milk varieties or dairy products with their price per litre.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {itemStats.map((item) => {
+            const isEditing = editingItemId === item.id;
 
           return (
             <div
@@ -224,7 +222,8 @@ export const ItemsView: React.FC<ItemsViewProps> = ({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Add New Item Section */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs max-w-xl">

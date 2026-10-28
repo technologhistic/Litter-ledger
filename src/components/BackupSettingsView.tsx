@@ -27,7 +27,6 @@ interface BackupSettingsViewProps {
   onUpdateSettings: (settings: Settings) => void;
   onImportData: (newItems: Item[], newSales: Sale[], replace: boolean) => void;
   onClearAllData: () => void;
-  onLoadDemoData: (demoSales: Sale[]) => void;
 }
 
 export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
@@ -37,7 +36,6 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
   onUpdateSettings,
   onImportData,
   onClearAllData,
-  onLoadDemoData,
 }) => {
   const [businessName, setBusinessName] = useState(settings.businessName);
   const [phone, setPhone] = useState(settings.phone);
@@ -103,14 +101,6 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
       ok: true,
     });
     setImportPending(null);
-    setTimeout(() => setMessage(null), 4000);
-  };
-
-  // Load Demo Data
-  const handleLoadDemo = () => {
-    const demoSales = generateDemoSales(items);
-    onLoadDemoData(demoSales);
-    setMessage({ text: `Generated ${demoSales.length} realistic past transactions for testing!`, ok: true });
     setTimeout(() => setMessage(null), 4000);
   };
 
@@ -383,27 +373,8 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
         </form>
       </div>
 
-      {/* Demo Data & Danger Zone */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-        {/* Load Demo Data */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-600 mb-2">
-              <Sparkles className="w-5 h-5" />
-              <h4 className="font-bold text-slate-900 text-sm">Load Sample Demo Data</h4>
-            </div>
-            <p className="text-xs text-slate-500">
-              Generates a week of morning, noon, and evening sales to explore analytics, reports, and filters immediately.
-            </p>
-          </div>
-          <button
-            onClick={handleLoadDemo}
-            className="mt-4 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-          >
-            Add Sample Sales
-          </button>
-        </div>
-
+      {/* Database Management / Reset */}
+      <div className="max-w-md">
         {/* Clear All Records */}
         <div className="bg-red-50/50 border border-red-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div>

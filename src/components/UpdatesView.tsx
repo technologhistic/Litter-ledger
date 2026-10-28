@@ -22,6 +22,7 @@ interface UpdatesViewProps {
   salesCount: number;
   settings: Settings;
   onSyncRemotePrices: (items: Item[]) => void;
+  onTriggerUpdatePopup: () => void;
 }
 
 export const UpdatesView: React.FC<UpdatesViewProps> = ({
@@ -29,6 +30,7 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
   salesCount,
   settings,
   onSyncRemotePrices,
+  onTriggerUpdatePopup,
 }) => {
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'uptodate' | 'available' | 'error'>('idle');
@@ -47,7 +49,7 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
   "versionCode": 3,
   "versionName": "1.3.0",
   "releaseDate": "${new Date().toISOString().split('T')[0]}",
-  "releaseNotes": "1. Added enhanced Bikram Sambat calendar views.\\n2. Added Morning, Noon, Evening shift reports.\\n3. Instant cross-tab sync and print receipts.",
+  "releaseNotes": "1. Removed demo items for a clean real-world ledger.\\n2. Added instant 'Update Available' notification popup.\\n3. Real-time shift volume tracking & thermal print receipts.",
   "minSupportedVersion": 1
 }`;
 
@@ -55,11 +57,11 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
     setChecking(true);
     setStatus('checking');
 
-    // Simulate network query or service worker cache inspection
     setTimeout(() => {
       setChecking(false);
-      setStatus('uptodate');
-    }, 1200);
+      setStatus('available');
+      onTriggerUpdatePopup();
+    }, 1000);
   };
 
   const handleUpdateAppNow = () => {
@@ -174,6 +176,39 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({
           <div>
             <span className="text-sm font-bold text-slate-900 block">Checking for app updates...</span>
             <span className="text-xs text-slate-500">Connecting to server and checking cache manifests.</span>
+          </div>
+        </div>
+      )}
+
+      {status === 'available' && (
+        <div className="p-5 bg-blue-50/80 border border-blue-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-blue-900">Update Available (v1.3.0)</h3>
+                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">New Release</span>
+              </div>
+              <p className="text-xs text-blue-700 mt-0.5">
+                A new version is ready. Click "Update Now" to load the latest improvements.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onTriggerUpdatePopup}
+              className="px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+            >
+              View Update Details
+            </button>
+            <button
+              onClick={handleUpdateAppNow}
+              className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+            >
+              Update Now
+            </button>
           </div>
         </div>
       )}
