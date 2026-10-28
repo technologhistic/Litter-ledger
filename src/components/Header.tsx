@@ -2,6 +2,7 @@ import React from 'react';
 import { Droplet, Calendar, Sun, CloudSun, Moon, RefreshCw } from 'lucide-react';
 import { ShiftType } from '../types';
 import { SHIFTS } from '../utils/shifts';
+import { OfflineIndicator } from './OfflineIndicator';
 
 export type NavTab = 'sell' | 'items' | 'month' | 'history' | 'updates' | 'backup';
 
@@ -149,6 +150,9 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               })}
             </div>
+
+            {/* Simple Offline / Online Status Indicator */}
+            <OfflineIndicator />
 
             {/* Calendar toggle button */}
             <button

@@ -20,6 +20,12 @@ import {
   saveSales,
   saveSettings,
 } from './utils/storage';
+import {
+  syncItemsToIndexedDB,
+  syncSalesToIndexedDB,
+  loadItemsFromIndexedDB,
+  loadSalesFromIndexedDB,
+} from './utils/indexedDb';
 import { RefreshCw, CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function App() {
@@ -55,18 +61,41 @@ export default function App() {
     totalAmount: number;
   } | null>(null);
 
-  // Synchronize localStorage
+  // Dual-layer offline persistence: Synchronize localStorage + IndexedDB
   useEffect(() => {
     saveItems(items);
+    syncItemsToIndexedDB(items);
   }, [items]);
 
   useEffect(() => {
     saveSales(sales);
+    syncSalesToIndexedDB(sales);
   }, [sales]);
 
   useEffect(() => {
     saveSettings(settings);
   }, [settings]);
+
+  // Check IndexedDB fallback if initial localStorage was empty
+  useEffect(() => {
+    if (items.length === 0) {
+      loadItemsFromIndexedDB().then((dbItems) => {
+        if (dbItems && dbItems.length > 0) setItems(dbItems);
+      });
+    }
+    if (sales.length === 0) {
+      loadSalesFromIndexedDB().then((dbSales) => {
+        if (dbSales && dbSales.length > 0) setSales(dbSales);
+      });
+    }
+  }, []);
+
+  // Listen for Service Worker update found event to show popup
+  useEffect(() => {
+    const handleUpdate = () => setIsUpdateAvailablePopupOpen(true);
+    window.addEventListener('app_update_available', handleUpdate);
+    return () => window.removeEventListener('app_update_available', handleUpdate);
+  }, []);
 
   // Listen for cross-tab storage changes so all open tabs update in real-time
   useEffect(() => {
