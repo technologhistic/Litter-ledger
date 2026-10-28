@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "Litre Ledger - Liquid & Dairy Sales",
+  "short_name": "Litre Ledger",
+  "description": "An offline sales ledger website to track litre-based liquid and dairy sales, Bikram Sambat (BS) calendar, daily shifts, monthly analytics, and data backup.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1d4ed8",
+  "background_color": "#f8fafc",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

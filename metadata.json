@@ -1,0 +1,6 @@
+{
+  "name": "Litre Ledger",
+  "description": "An offline sales ledger website to track litre-based liquid and dairy sales, Bikram Sambat (BS) calendar, daily shifts, monthly analytics, and JSON backup.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
