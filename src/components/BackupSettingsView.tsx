@@ -7,18 +7,21 @@ import {
   Building,
   Coins,
   Calendar,
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
   HardDrive,
+  Sun,
+  Moon,
+  Languages,
+  Sparkles,
 } from 'lucide-react';
-import { Item, Sale, Settings } from '../types';
+import { Item, Sale, Settings, ThemeMode, Language } from '../types';
 import {
   exportBackupJson,
   exportSalesCsv,
-  generateDemoSales,
   parseBackupJson,
 } from '../utils/storage';
+import { getTranslation } from '../utils/translations';
 
 interface BackupSettingsViewProps {
   items: Item[];
@@ -37,6 +40,9 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
   onImportData,
   onClearAllData,
 }) => {
+  const currentLang = settings.language || 'en';
+  const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(currentLang, key);
+
   const [businessName, setBusinessName] = useState(settings.businessName);
   const [phone, setPhone] = useState(settings.phone);
   const [address, setAddress] = useState(settings.address);
@@ -53,10 +59,39 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
   const phoneId = useId();
   const addressId = useId();
 
+  // Instant Theme Mode Switcher
+  const handleToggleTheme = (newTheme: ThemeMode) => {
+    const updated: Settings = {
+      ...settings,
+      theme: newTheme,
+    };
+    onUpdateSettings(updated);
+    setMessage({
+      text: newTheme === 'dark' ? 'Dark Mode activated' : 'Light Mode activated',
+      ok: true,
+    });
+    setTimeout(() => setMessage(null), 2500);
+  };
+
+  // Instant Language Switcher (English <-> Nepali)
+  const handleToggleLanguage = (newLang: Language) => {
+    const updated: Settings = {
+      ...settings,
+      language: newLang,
+    };
+    onUpdateSettings(updated);
+    setMessage({
+      text: newLang === 'np' ? 'भाषा परिवर्तन भयो: नेपाली' : 'Language changed to English',
+      ok: true,
+    });
+    setTimeout(() => setMessage(null), 2500);
+  };
+
   // Save Settings
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     const updated: Settings = {
+      ...settings,
       businessName: businessName.trim(),
       phone: phone.trim(),
       address: address.trim(),
@@ -64,7 +99,7 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
       calendarSystem,
     };
     onUpdateSettings(updated);
-    setMessage({ text: 'Settings updated successfully!', ok: true });
+    setMessage({ text: t('saveSettingsBtn') + ' ✓', ok: true });
     setTimeout(() => setMessage(null), 3000);
   };
 
@@ -107,16 +142,18 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Overview Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Data Backup & App Settings</h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Export JSON backups, download CSV spreadsheets for Excel, configure business receipts, or manage storage.
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {t('settingsTitle')}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {t('settingsDesc')}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold">
-            <HardDrive className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">
+            <HardDrive className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>{items.length} Items · {sales.length} Sales Stored</span>
           </span>
         </div>
@@ -125,7 +162,9 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
       {message && (
         <div
           className={`p-4 rounded-xl flex items-center gap-2.5 text-sm font-semibold transition-all ${
-            message.ok ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
+            message.ok
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              : 'bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800'
           }`}
         >
           {message.ok ? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />}
@@ -133,16 +172,99 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
         </div>
       )}
 
+      {/* 1. APPEARANCE & LANGUAGE CONTROLS (Theme & Language Switching Buttons) */}
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xs max-w-2xl transition-colors">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <span>{t('appearanceAndLang')}</span>
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+          Customize the visual display theme and select your preferred language.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Light Mode / Dark Mode Toggle Button */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/80">
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              {settings.theme === 'dark' ? <Moon className="w-3.5 h-3.5 text-indigo-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
+              <span>{t('themeMode')}</span>
+            </span>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => handleToggleTheme('light')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  settings.theme !== 'dark'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                <span>{t('lightMode')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleTheme('dark')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  settings.theme === 'dark'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                <span>{t('darkMode')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Language Changing Button (English / Nepali) */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/80">
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Languages className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>{t('language')}</span>
+            </span>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => handleToggleLanguage('en')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  settings.language !== 'np'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleLanguage('np')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  settings.language === 'np'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <span>🇳🇵</span>
+                <span>नेपाली</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Backup and Data Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Export JSON */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
               <Download className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Export JSON Backup</h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+              {t('exportBackup')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Download your complete ledger database (items, prices, and past sales) in standard JSON format.
             </p>
           </div>
@@ -156,13 +278,15 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
         </div>
 
         {/* Import JSON */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
               <Upload className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Import JSON Backup</h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+              {t('importBackup')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Restore data from an exported backup file or migrate records from another device.
             </p>
           </div>
@@ -175,41 +299,42 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
-            <Upload className="w-4 h-4 text-indigo-600" />
+            <Upload className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Select Backup File</span>
           </button>
         </div>
 
         {/* Export CSV */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Export CSV Spreadsheet</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Export all sales records to a CSV spreadsheet with AD and BS dates for Excel or Google Sheets.
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+              {t('exportCsv')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Open your dairy sales in Microsoft Excel, Google Sheets, or LibreOffice Calc.
             </p>
           </div>
           <button
-            onClick={() => exportSalesCsv(sales, settings.currency)}
-            disabled={sales.length === 0}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+            onClick={() => exportSalesCsv(sales, settings.calendarSystem)}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileSpreadsheet className="w-4 h-4" />
             <span>Download CSV (.csv)</span>
           </button>
         </div>
       </div>
 
-      {/* Import Confirmation Dialog */}
+      {/* Import Modal Confirmation */}
       {importPending && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
-            <h3 className="text-base font-bold text-slate-900">Import Litre Ledger Backup</h3>
-            <p className="text-xs text-slate-600 mt-2">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Import Litre Ledger Backup</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               Found <strong>{importPending.items.length} items</strong> and <strong>{importPending.sales.length} sales records</strong> in this backup file.
             </p>
 
@@ -217,18 +342,18 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
               <button
                 type="button"
                 onClick={() => handleConfirmImport(false)}
-                className="w-full py-2.5 px-4 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors cursor-pointer text-left flex items-center justify-between"
+                className="w-full py-2.5 px-4 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 rounded-xl transition-colors cursor-pointer text-left flex items-center justify-between"
               >
                 <span>Merge with existing records</span>
-                <span className="text-[11px] font-normal text-blue-500">Keep current items/sales</span>
+                <span className="text-[11px] font-normal text-blue-500 dark:text-blue-400">Keep current items/sales</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleConfirmImport(true)}
-                className="w-full py-2.5 px-4 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-colors cursor-pointer text-left flex items-center justify-between"
+                className="w-full py-2.5 px-4 text-xs font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 rounded-xl transition-colors cursor-pointer text-left flex items-center justify-between"
               >
                 <span>Replace all current records</span>
-                <span className="text-[11px] font-normal text-red-500">Overwrites existing data</span>
+                <span className="text-[11px] font-normal text-red-500 dark:text-red-400">Overwrites existing data</span>
               </button>
             </div>
 
@@ -236,7 +361,7 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setImportPending(null)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700"
               >
                 Cancel
               </button>
@@ -246,17 +371,19 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
       )}
 
       {/* Business Profile & Preferences */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs max-w-2xl">
-        <h3 className="text-base font-bold text-slate-900 mb-1">Business Profile & Receipts</h3>
-        <p className="text-xs text-slate-500 mb-4">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xs max-w-2xl transition-colors">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+          {t('businessProfile')}
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
           Information displayed on printable receipts, daily summary reports, and invoices.
         </p>
 
         <form onSubmit={handleSaveSettings} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor={businessNameId} className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Dairy / Farm / Business Name
+              <label htmlFor={businessNameId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                {t('businessName')}
               </label>
               <div className="relative">
                 <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -266,14 +393,14 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
                   placeholder="e.g. Pashupati Dairy Collection"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor={phoneId} className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Contact Phone Number
+              <label htmlFor={phoneId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                {t('phone')}
               </label>
               <input
                 id={phoneId}
@@ -281,14 +408,14 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
                 placeholder="e.g. 98XXXXXXXX"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor={addressId} className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Address / Location
+            <label htmlFor={addressId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+              {t('address')}
             </label>
             <input
               id={addressId}
@@ -296,64 +423,50 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
               placeholder="e.g. Pokhara, Ward 4, Nepal"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
             />
           </div>
 
-          {/* Currency and Calendar System */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Currency Symbol
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                {t('currencySymbol')}
               </label>
-              <div className="flex items-center gap-2">
-                {['Rs.', 'रू', '₹', '$'].map((sym) => (
-                  <button
-                    key={sym}
-                    type="button"
-                    onClick={() => setCurrency(sym)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
-                      currency === sym
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    {sym}
-                  </button>
-                ))}
+              <div className="relative">
+                <Coins className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Custom"
+                  placeholder="Rs. or रु or NPR"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-20 px-2 py-1.5 text-xs font-bold border border-slate-200 rounded-lg text-center"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Default Calendar System
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                {t('calendarSystem')}
               </label>
-              <div className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setCalendarSystem('BS')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
                     calendarSystem === 'BS'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 ring-1 ring-blue-400'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                   }`}
                 >
-                  Bikram Sambat (BS)
+                  वि.सं. (BS)
                 </button>
                 <button
                   type="button"
                   onClick={() => setCalendarSystem('AD')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
                     calendarSystem === 'AD'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 ring-1 ring-blue-400'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   Gregorian (AD)
@@ -365,9 +478,9 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="py-2.5 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              className="py-2.5 px-6 bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs active:scale-98"
             >
-              Save Settings
+              {t('saveSettingsBtn')}
             </button>
           </div>
         </form>
@@ -375,14 +488,15 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
 
       {/* Database Management / Reset */}
       <div className="max-w-md">
-        {/* Clear All Records */}
-        <div className="bg-red-50/50 border border-red-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="flex items-center gap-2 text-red-600 mb-2">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
               <Trash2 className="w-5 h-5" />
-              <h4 className="font-bold text-red-900 text-sm">Reset All Ledger Data</h4>
+              <h4 className="font-bold text-red-900 dark:text-red-200 text-sm">
+                {t('resetDatabase')}
+              </h4>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Deletes all local items and sales records on this browser. Make sure you have exported a JSON backup first.
             </p>
           </div>
@@ -398,19 +512,19 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
       {/* Clear Confirmation Dialog */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
-            <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-3">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-200 dark:border-slate-700">
+            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mb-3">
               <AlertTriangle className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Reset All Data?</h3>
-            <p className="text-xs text-slate-600 mt-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Reset All Data?</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               This will permanently delete all {sales.length} sales and {items.length} items from this device's storage. This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2 mt-5">
               <button
                 type="button"
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"
               >
                 Cancel
               </button>
@@ -419,11 +533,11 @@ export const BackupSettingsView: React.FC<BackupSettingsViewProps> = ({
                 onClick={() => {
                   onClearAllData();
                   setShowClearConfirm(false);
-                  setMessage({ text: 'All data has been cleared.', ok: true });
+                  setMessage({ text: 'All data cleared successfully.', ok: true });
                 }}
-                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs"
               >
-                Yes, Delete Everything
+                Yes, Reset All Data
               </button>
             </div>
           </div>

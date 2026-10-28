@@ -61,6 +61,15 @@ export default function App() {
     saveSettings(settings);
   }, [settings]);
 
+  // Synchronize Dark / Light theme class on html root
+  useEffect(() => {
+    if (settings.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.theme]);
+
   // Check IndexedDB fallback if initial localStorage was empty
   useEffect(() => {
     if (items.length === 0) {
@@ -180,7 +189,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors">
       {/* Top Header */}
       <Header
         currentTab={currentTab}
@@ -193,6 +202,7 @@ export default function App() {
         hasUpdate={hasUpdate}
         isUpdating={isUpdating}
         onTriggerUpdate={triggerUpdate}
+        language={settings.language || 'en'}
       />
 
       {/* Floating Cross-Tab Sync Notification */}
@@ -269,12 +279,12 @@ export default function App() {
       </main>
 
       {/* Clean Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto no-print">
+      <footer className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-6 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto no-print transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
-            <span className="font-semibold text-slate-700">Litre Ledger</span> · Liquid & Dairy Sales Management
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Litre Ledger</span> · Liquid & Dairy Sales Management
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500">
             <span>Offline-Ready (LocalStorage + IndexedDB)</span>
             <span>·</span>
             <span>Bikram Sambat (वि.सं.) + AD</span>

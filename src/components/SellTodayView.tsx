@@ -243,15 +243,15 @@ export const SellTodayView: React.FC<SellTodayViewProps> = ({
               }}
               className={`p-4 rounded-xl border transition-all text-left cursor-pointer ${
                 isActive
-                  ? 'bg-blue-50/70 border-blue-500 shadow-sm ring-1 ring-blue-500'
-                  : 'bg-white border-slate-200 hover:border-slate-300'
+                  ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-sm ring-1 ring-blue-500'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {getShiftIcon(shiftKey)}
                   <div>
-                    <span className="text-sm font-bold text-slate-900 block leading-tight">
+                    <span className="text-sm font-bold text-slate-900 dark:text-white block leading-tight">
                       {info.titleEn} ({info.titleNp})
                     </span>
                     <span className="text-[11px] text-slate-500">{info.timeRange}</span>
@@ -284,10 +284,10 @@ export const SellTodayView: React.FC<SellTodayViewProps> = ({
       </div>
 
       {/* 3. New Sale Entry Form */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xs transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-700">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Record a Sale</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Record a Sale</h2>
             <p className="text-xs text-slate-500">
               Active schedule: <strong className="text-blue-700">{SHIFTS[activeShift].titleEn} ({SHIFTS[activeShift].titleNp})</strong> · Time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </p>

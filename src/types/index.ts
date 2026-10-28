@@ -19,12 +19,17 @@ export interface Sale {
   notes?: string;
 }
 
+export type ThemeMode = 'light' | 'dark';
+export type Language = 'en' | 'np';
+
 export interface Settings {
   calendarSystem: 'BS' | 'AD';
   currency: string;
   businessName: string;
   phone: string;
   address: string;
+  theme: ThemeMode;
+  language: Language;
 }
 
 export interface BsDate {

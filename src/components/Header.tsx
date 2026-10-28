@@ -1,8 +1,9 @@
 import React from 'react';
 import { Droplet, Calendar, Sun, CloudSun, Moon, RefreshCw } from 'lucide-react';
-import { ShiftType } from '../types';
+import { ShiftType, Language } from '../types';
 import { SHIFTS } from '../utils/shifts';
 import { OfflineIndicator } from './OfflineIndicator';
+import { getTranslation } from '../utils/translations';
 
 export type NavTab = 'sell' | 'items' | 'month' | 'history' | 'backup';
 
@@ -17,6 +18,7 @@ interface HeaderProps {
   hasUpdate: boolean;
   isUpdating: boolean;
   onTriggerUpdate: () => void;
+  language: Language;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,8 +32,9 @@ export const Header: React.FC<HeaderProps> = ({
   hasUpdate,
   isUpdating,
   onTriggerUpdate,
+  language,
 }) => {
-  const currentShiftInfo = SHIFTS[activeShift];
+  const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
   const getShiftIcon = (type: ShiftType) => {
     switch (type) {
@@ -44,8 +47,15 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const getShiftLabel = (type: ShiftType) => {
+    if (language === 'np') {
+      return SHIFTS[type].titleNp;
+    }
+    return SHIFTS[type].titleEn;
+  };
+
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
+    <header className="sticky top-0 z-30 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-6 h-16">
           {/* Zone 1: Single text element wordmark */}
@@ -57,10 +67,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onSelectTab('sell')}
               className="text-left cursor-pointer group"
             >
-              <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors whitespace-nowrap">
+              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors whitespace-nowrap">
                 Litre Ledger
               </span>
-              <span className="hidden sm:inline-block ml-2 text-xs font-medium text-slate-500">
+              <span className="hidden sm:inline-block ml-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                 {todayBsText}
               </span>
             </button>
@@ -72,58 +82,58 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onSelectTab('sell')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'sell'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
-              Sell Today
+              {t('sellToday')}
             </button>
             <button
               onClick={() => onSelectTab('items')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'items'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
-              Items & Rates
+              {t('itemsRates')}
             </button>
             <button
               onClick={() => onSelectTab('month')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'month'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
-              This Month
+              {t('thisMonth')}
             </button>
             <button
               onClick={() => onSelectTab('history')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'history'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
-              Sales History
+              {t('salesHistory')}
             </button>
             <button
               onClick={() => onSelectTab('backup')}
               className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 currentTab === 'backup'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
-              Data & Settings
+              {t('dataSettings')}
             </button>
           </nav>
 
           {/* Zone 3: Actions area (Shift Selector, Offline Status, Calendar, and Single Glowing Update Button) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Shift pill toggle */}
-            <div className="hidden lg:flex items-center gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200">
+            <div className="hidden lg:flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-700/60 rounded-lg border border-slate-200 dark:border-slate-700">
               {(['morning', 'noon', 'evening'] as ShiftType[]).map((s) => {
                 const isSelected = activeShift === s;
                 return (
@@ -131,14 +141,14 @@ export const Header: React.FC<HeaderProps> = ({
                     key={s}
                     onClick={() => onSelectShift(s)}
                     title={`${SHIFTS[s].titleEn} (${SHIFTS[s].titleNp})`}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-semibold'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                   >
                     {getShiftIcon(s)}
-                    <span>{SHIFTS[s].titleEn}</span>
+                    <span>{getShiftLabel(s)}</span>
                   </button>
                 );
               })}
@@ -151,10 +161,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onToggleCalendar}
               title={`Switch calendar (currently ${calendarSystem})`}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors whitespace-nowrap cursor-pointer"
             >
-              <Calendar className="w-3.5 h-3.5 text-blue-600" />
-              <span>{calendarSystem === 'BS' ? 'BS Calendar' : 'AD Calendar'}</span>
+              <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>{calendarSystem === 'BS' ? t('bsCalendar') : t('adCalendar')}</span>
             </button>
 
             {/* Single Update Button (Glows when update is available) */}
@@ -169,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer ${
                 hasUpdate
                   ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.75)] ring-2 ring-blue-400 ring-offset-1 animate-pulse hover:bg-blue-700'
-                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
               } ${isUpdating ? 'opacity-70 cursor-wait' : ''}`}
             >
               {hasUpdate && (
@@ -179,52 +189,52 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
               <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
-              <span>{isUpdating ? 'Updating...' : hasUpdate ? 'Update Available' : 'Update'}</span>
+              <span>{isUpdating ? t('updating') : hasUpdate ? t('updateAvailable') : t('update')}</span>
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation Bar */}
-        <div className="flex md:hidden items-center justify-between border-t border-slate-100 py-2 gap-1 overflow-x-auto">
+        <div className="flex md:hidden items-center justify-between border-t border-slate-100 dark:border-slate-700/80 py-2 gap-1 overflow-x-auto">
           <button
             onClick={() => onSelectTab('sell')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'sell' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
+              currentTab === 'sell' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            Sell Today
+            {t('sellToday')}
           </button>
           <button
             onClick={() => onSelectTab('items')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'items' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
+              currentTab === 'items' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            Items
+            {t('itemsRates')}
           </button>
           <button
             onClick={() => onSelectTab('month')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'month' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
+              currentTab === 'month' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            Month
+            {t('thisMonth')}
           </button>
           <button
             onClick={() => onSelectTab('history')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'history' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
+              currentTab === 'history' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            History
+            {t('salesHistory')}
           </button>
           <button
             onClick={() => onSelectTab('backup')}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
-              currentTab === 'backup' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600'
+              currentTab === 'backup' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            Settings
+            {t('dataSettings')}
           </button>
         </div>
       </div>

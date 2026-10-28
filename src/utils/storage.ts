@@ -21,6 +21,8 @@ export const DEFAULT_SETTINGS: Settings = {
   businessName: 'Litre Ledger Dairy Farm',
   phone: '9800000000',
   address: 'Milk Collection Center',
+  theme: 'light',
+  language: 'en',
 };
 
 export function cleanupDemoItems(): void {
@@ -102,7 +104,13 @@ export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      theme: parsed.theme === 'dark' ? 'dark' : 'light',
+      language: parsed.language === 'np' ? 'np' : 'en',
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
